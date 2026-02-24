@@ -27,7 +27,7 @@ Hooks.on("renderSceneControls", () => {
     if (!existingBtn) {
         layers.insertAdjacentHTML("beforeend", `
             <li>
-                <button type="button" class="control ui-control icon fas fa-users-cog" role="tab" data-control="group-init-app-toggle" data-tooltip="Group Initiative"></button>
+                <button type="button" class="control ui-control" role="tab" data-control="group-init-app-toggle" data-tooltip="Group Initiative" style="background-image: url('modules/fighty-qol/img/group-initiative-icon.webp'); background-size: 80%; background-repeat: no-repeat; background-position: center;"></button>
             </li>
         `);
 

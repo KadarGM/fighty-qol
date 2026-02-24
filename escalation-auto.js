@@ -12,10 +12,10 @@ Hooks.on("renderSceneControls", () => {
         return;
     }
 
-    if (!existingBtn) {
+   if (!existingBtn) {
         layers.insertAdjacentHTML("beforeend", `
             <li>
-                <button type="button" class="control ui-control icon fas fa-crosshairs" role="tab" data-control="escalation-auto-toggle" data-tooltip="Escalation Dice - Automation"></button>
+                <button type="button" class="control ui-control" role="tab" data-control="escalation-auto-toggle" data-tooltip="Escalation Dice - Automation" style="background-image: url('modules/fighty-qol/img/escalation-icon.webp'); background-size: 80%; background-repeat: no-repeat; background-position: center;"></button>
             </li>
         `);
 
