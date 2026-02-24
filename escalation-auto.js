@@ -48,7 +48,7 @@ Hooks.on('controlToken', async (token, isControlled) => {
 
 class EscalationAutoApp extends Application {
     static get defaultOptions() {
-        return mergeObject(super.defaultOptions, {
+        return foundry.utils.mergeObject(super.defaultOptions, {
             id: "escalation-auto-app",
             title: "Escalation Automation",
             template: "modules/fighty-qol/escalation-temp.html", 
@@ -70,12 +70,14 @@ class EscalationAutoApp extends Application {
     activateListeners(html) {
         super.activateListeners(html);
         
-        html.find('.toggle-rec').click(() => {
+        html.find('.toggle-rec').click((ev) => {
+            ev.preventDefault();
             window.EscalationAutoRecording = !window.EscalationAutoRecording;
             this.render(true);
         });
 
         html.find('.rem-actor').click(async (ev) => {
+            ev.preventDefault();
             const id = $(ev.currentTarget).data('id');
             let list = game.settings.get('fighty-qol', 'automatedActors') || [];
             list = list.filter(a => a.id !== id);
@@ -83,7 +85,8 @@ class EscalationAutoApp extends Application {
             this.render(true);
         });
 
-        html.find('.clr-actors').click(async () => {
+        html.find('.clr-actors').click(async (ev) => {
+            ev.preventDefault();
             await game.settings.set('fighty-qol', 'automatedActors', []);
             this.render(true);
         });
@@ -93,57 +96,61 @@ class EscalationAutoApp extends Application {
 async function manageEscalationBuffs() {
     if (!game.user.isGM) return;
 
-    const isAutomationEnabled = game.settings.get('fighty-qol', 'enableAutomation');
-    if (!isAutomationEnabled) return;
+    try {
+        const isAutomationEnabled = game.settings.get('fighty-qol', 'enableAutomation');
+        if (!isAutomationEnabled) return;
 
-    const isActive = game.settings.get('fighty-qol', 'active');
-    const combat = game.combat;
-    let currentBonus = 0;
+        const isActive = game.settings.get('fighty-qol', 'active');
+        const combat = game.combat;
+        let currentBonus = 0;
 
-    if (isActive && combat && combat.started) {
-        const startRound = game.settings.get('fighty-qol', 'startRound');
-        if (combat.round >= startRound) {
-            const intervalDivider = game.settings.get('fighty-qol', 'interval') + 1;
-            const bonusStep = game.settings.get('fighty-qol', 'bonusStep');
-            const maxBonus = game.settings.get('fighty-qol', 'maxBonus');
+        if (isActive && combat && combat.started) {
+            const startRound = game.settings.get('fighty-qol', 'startRound');
+            if (combat.round >= startRound) {
+                const intervalDivider = game.settings.get('fighty-qol', 'interval') + 1;
+                const bonusStep = game.settings.get('fighty-qol', 'bonusStep');
+                const maxBonus = game.settings.get('fighty-qol', 'maxBonus');
 
-            const roundsActive = combat.round - startRound;
-            const triggers = Math.floor(roundsActive / intervalDivider) + 1;
-            currentBonus = Math.min(triggers * bonusStep, maxBonus);
+                const roundsActive = combat.round - startRound;
+                const triggers = Math.floor(roundsActive / intervalDivider) + 1;
+                currentBonus = Math.min(triggers * bonusStep, maxBonus);
+            }
         }
-    }
 
-    const automatedActors = game.settings.get('fighty-qol', 'automatedActors') || [];
+        const automatedActors = game.settings.get('fighty-qol', 'automatedActors') || [];
 
-    for (let target of automatedActors) {
-        const actor = await fromUuid(target.id);
-        if (!actor) continue;
+        for (let target of automatedActors) {
+            const actor = await fromUuid(target.id);
+            if (!actor) continue;
 
-        const existingEffect = actor.effects.find(e => e.flags?.["fighty-qol"]?.isEscalation);
+            const existingEffect = actor.effects.find(e => e.flags?.["fighty-qol"]?.isEscalation);
 
-        if (currentBonus > 0) {
-            const effectData = {
-                name: "Escalation Dice",
-                icon: "icons/skills/melee/strike-sword-blood-red.webp",
-                changes: [
-                    { key: "system.bonuses.mwak.attack", mode: 2, value: `+${currentBonus}` },
-                    { key: "system.bonuses.rwak.attack", mode: 2, value: `+${currentBonus}` },
-                    { key: "system.bonuses.msak.attack", mode: 2, value: `+${currentBonus}` },
-                    { key: "system.bonuses.rsak.attack", mode: 2, value: `+${currentBonus}` }
-                ],
-                flags: { "fighty-qol": { isEscalation: true } }
-            };
+            if (currentBonus > 0) {
+                const effectData = {
+                    name: "Escalation Dice",
+                    img: "icons/skills/melee/strike-sword-blood-red.webp", // <-- opraveno z icon na img pro v12
+                    changes: [
+                        { key: "system.bonuses.mwak.attack", mode: 2, value: `+${currentBonus}` },
+                        { key: "system.bonuses.rwak.attack", mode: 2, value: `+${currentBonus}` },
+                        { key: "system.bonuses.msak.attack", mode: 2, value: `+${currentBonus}` },
+                        { key: "system.bonuses.rsak.attack", mode: 2, value: `+${currentBonus}` }
+                    ],
+                    flags: { "fighty-qol": { isEscalation: true } }
+                };
 
-            if (existingEffect) {
-                if (existingEffect.changes[0].value !== `+${currentBonus}`) {
-                    await existingEffect.update({ changes: effectData.changes });
+                if (existingEffect) {
+                    if (existingEffect.changes[0].value != `+${currentBonus}`) {
+                        await existingEffect.update({ changes: effectData.changes });
+                    }
+                } else {
+                    await actor.createEmbeddedDocuments("ActiveEffect", [effectData]);
                 }
             } else {
-                await actor.createEmbeddedDocuments("ActiveEffect", [effectData]);
+                if (existingEffect) await existingEffect.delete();
             }
-        } else {
-            if (existingEffect) await existingEffect.delete();
         }
+    } catch (err) {
+        console.error("Fighty QOL | Escalation Automation Error:", err);
     }
 }
 

@@ -40,7 +40,7 @@ Hooks.on("renderSceneControls", () => {
 
 class GroupInitApp extends Application {
     static get defaultOptions() {
-        return mergeObject(super.defaultOptions, {
+        return foundry.utils.mergeObject(super.defaultOptions, {
             id: "group-init-app",
             title: "Group Initiative",
             template: "modules/fighty-qol/averager-temp.html", 
@@ -66,18 +66,21 @@ class GroupInitApp extends Application {
     activateListeners(html) {
         super.activateListeners(html);
         
-        html.find('.toggle-record').click(() => {
+        html.find('.toggle-record').click((ev) => {
+            ev.preventDefault();
             window.GroupInitRecording = !window.GroupInitRecording;
             this.render(true);
         });
 
         html.find('.remove-token').click(ev => {
+            ev.preventDefault();
             const id = $(ev.currentTarget).data('id');
             window.GroupInitTokens = window.GroupInitTokens.filter(t => t.id !== id);
             this.render(true);
         });
 
-        html.find('.clear-tokens').click(() => {
+        html.find('.clear-tokens').click((ev) => {
+            ev.preventDefault();
             window.GroupInitTokens = [];
             this.render(true);
         });
@@ -87,117 +90,127 @@ class GroupInitApp extends Application {
         html.find('select[name="calcMethod"]').change(async (ev) => await game.settings.set('fighty-qol', 'calcMethod', ev.target.value));
         html.find('select[name="rollMode"]').change(async (ev) => await game.settings.set('fighty-qol', 'rollMode', ev.target.value));
         
-        html.find('.roll-init').click(async () => {
-            if (window.GroupInitRecording) {
-                window.GroupInitRecording = false;
-                this.render(true);
-            }
-
-            if (window.GroupInitTokens.length === 0) {
-                ui.notifications.warn("No tokens selected for Group Initiative.");
-                return;
-            }
-
-            const autoAdd = game.settings.get('fighty-qol', 'autoAdd');
-            const useBonuses = game.settings.get('fighty-qol', 'useBonuses');
-            const calcMethod = game.settings.get('fighty-qol', 'calcMethod');
-            const rollMode = game.settings.get('fighty-qol', 'rollMode');
-            
-            const validTokens = canvas.tokens.placeables.filter(t => window.GroupInitTokens.find(wt => wt.id === t.id));
-            
-            if (validTokens.length === 0) {
-                ui.notifications.warn("Selected tokens are not present on the current scene.");
-                return;
-            }
-
-            let rolls = [];
-            let chatDetails = "";
-
-            for (let t of validTokens) {
-                let initBonus = 0;
-                if (useBonuses && t.actor && t.actor.system.attributes?.init) {
-                    initBonus = t.actor.system.attributes.init.bonus || 0;
+        html.find('.roll-init').click(async (ev) => {
+            ev.preventDefault();
+            try {
+                if (window.GroupInitRecording) {
+                    window.GroupInitRecording = false;
+                    this.render(true);
                 }
 
-                let formula = "1d20";
-                if (rollMode === "advantage") formula = "2d20kh";
-                if (rollMode === "disadvantage") formula = "2d20kl";
+                if (window.GroupInitTokens.length === 0) {
+                    ui.notifications.warn("No tokens selected for Group Initiative.");
+                    return;
+                }
+
+                const autoAdd = game.settings.get('fighty-qol', 'autoAdd');
+                const useBonuses = game.settings.get('fighty-qol', 'useBonuses');
+                const calcMethod = game.settings.get('fighty-qol', 'calcMethod');
+                const rollMode = game.settings.get('fighty-qol', 'rollMode');
                 
-                if (initBonus > 0) formula += ` + ${initBonus}`;
-                else if (initBonus < 0) formula += ` - ${Math.abs(initBonus)}`;
-
-                let roll = await new Roll(formula).evaluate();
-                rolls.push(roll.total);
+                const validTokens = canvas.tokens.placeables.filter(t => window.GroupInitTokens.find(wt => wt.id === t.id));
                 
-                chatDetails += `<div style="display: flex; justify-content: space-between; border-bottom: 1px solid #ccc; padding: 2px 0;">
-                    <span>${t.name}</span>
-                    <strong>${roll.total}</strong>
-                </div>`;
-            }
+                if (validTokens.length === 0) {
+                    ui.notifications.warn("Selected tokens are not present on the current scene.");
+                    return;
+                }
 
-            let finalInit = 0;
-            let methodText = "";
+                let rolls = [];
+                let chatDetails = "";
 
-            if (calcMethod === 'avg') {
-                const sum = rolls.reduce((a, b) => a + b, 0);
-                finalInit = Math.ceil(sum / rolls.length);
-                methodText = "Average";
-            } else if (calcMethod === 'median') {
-                rolls.sort((a, b) => a - b);
-                const mid = Math.floor(rolls.length / 2);
-                finalInit = rolls.length % 2 !== 0 ? rolls[mid] : Math.ceil((rolls[mid - 1] + rolls[mid]) / 2);
-                methodText = "Median";
-            } else if (calcMethod === 'high') {
-                finalInit = Math.max(...rolls);
-                methodText = "Highest";
-            } else if (calcMethod === 'low') {
-                finalInit = Math.min(...rolls);
-                methodText = "Lowest";
-            }
+                for (let t of validTokens) {
+                    let initBonus = 0;
+                    if (useBonuses && t.actor && t.actor.system.attributes?.init) {
+                        const initObj = t.actor.system.attributes.init;
+                        initBonus = initObj.total ?? initObj.mod ?? initObj.bonus ?? 0;
+                    }
 
-            let combat = game.combat;
-            let chatHtml = `
-                <div style="font-family: 'Signika', sans-serif;">
-                    <h3 style="border-bottom: 2px solid #333; margin-bottom: 5px;">Group Initiative</h3>
-                    <div style="font-size: 0.9em; margin-bottom: 10px;">
-                        ${chatDetails}
+                    let formula = "1d20";
+                    if (rollMode === "advantage") formula = "2d20kh";
+                    if (rollMode === "disadvantage") formula = "2d20kl";
+                    
+                    if (initBonus > 0) formula += ` + ${initBonus}`;
+                    else if (initBonus < 0) formula += ` - ${Math.abs(initBonus)}`;
+
+                    let roll = await new Roll(formula).evaluate();
+                    rolls.push(roll.total);
+                    
+                    chatDetails += `<div style="display: flex; justify-content: space-between; border-bottom: 1px solid #ccc; padding: 2px 0;">
+                        <span>${t.name}</span>
+                        <strong>${roll.total}</strong>
+                    </div>`;
+                }
+
+                let finalInit = 0;
+                let methodText = "";
+
+                if (calcMethod === 'avg') {
+                    const sum = rolls.reduce((a, b) => a + b, 0);
+                    finalInit = Math.ceil(sum / rolls.length);
+                    methodText = "Average";
+                } else if (calcMethod === 'median') {
+                    rolls.sort((a, b) => a - b);
+                    const mid = Math.floor(rolls.length / 2);
+                    finalInit = rolls.length % 2 !== 0 ? rolls[mid] : Math.ceil((rolls[mid - 1] + rolls[mid]) / 2);
+                    methodText = "Median";
+                } else if (calcMethod === 'high') {
+                    finalInit = Math.max(...rolls);
+                    methodText = "Highest";
+                } else if (calcMethod === 'low') {
+                    finalInit = Math.min(...rolls);
+                    methodText = "Lowest";
+                }
+
+                let combat = game.combat;
+                let chatHtml = `
+                    <div style="font-family: 'Signika', sans-serif;">
+                        <h3 style="border-bottom: 2px solid #333; margin-bottom: 5px;">Group Initiative</h3>
+                        <div style="font-size: 0.9em; margin-bottom: 10px;">
+                            ${chatDetails}
+                        </div>
+                        <div>
+                            <h4 title="Calculation Method: ${methodText}, Roll Mode: ${rollMode}" style="color: black; font-size: 1.2em; text-align: center; background: #e0e0e0; padding: 5px; margin-top: 5px; border-radius: 3px;">
+                                ${methodText}: ${finalInit}
+                            </h4>
+                        </div>
                     </div>
-                    <div>
-                        <h4 title="Calculation Method: ${methodText}, Roll Mode: ${rollMode}" style="color: black; font-size: 1.2em; text-align: center; background: #e0e0e0; padding: 5px; margin-top: 5px; border-radius: 3px;">
-                            ${methodText}: ${finalInit}
-                        </h4>
-                    </div>
-                </div>
-            `;
+                `;
 
-            await ChatMessage.create({
-                user: game.user.id,
-                speaker: ChatMessage.getSpeaker({alias: "DM - Group Initiative"}),
-                content: chatHtml
-            });
+                await ChatMessage.create({
+                    user: game.user.id,
+                    speaker: ChatMessage.getSpeaker({alias: "DM - Group Initiative"}),
+                    content: chatHtml
+                });
 
-            if (autoAdd) {
-                if (!combat) combat = await Combat.create({ scene: canvas.scene.id, active: true });
-                
-                const toAdd = validTokens.filter(t => !t.inCombat).map(t => ({
-                    tokenId: t.id,
-                    sceneId: t.scene.id,
-                    actorId: t.document.actorId,
-                    hidden: t.document.hidden
-                }));
-                if (toAdd.length > 0) {
-                    await combat.createEmbeddedDocuments("Combatant", toAdd);
+                if (autoAdd) {
+                    if (!combat && canvas.scene) {
+                        combat = await Combat.create({ scene: canvas.scene.id, active: true });
+                    }
+                    
+                    if (combat) {
+                        const toAdd = validTokens.filter(t => !t.inCombat).map(t => ({
+                            tokenId: t.id,
+                            sceneId: t.scene.id,
+                            hidden: t.document.hidden
+                        }));
+                        if (toAdd.length > 0) {
+                            await combat.createEmbeddedDocuments("Combatant", toAdd);
+                        }
+                        
+                        const updates = validTokens.map(t => {
+                            const combatant = combat.combatants.find(c => c.tokenId === t.id);
+                            if (combatant) return { _id: combatant.id, initiative: finalInit };
+                            return null;
+                        }).filter(u => u !== null);
+                        
+                        if (updates.length > 0) {
+                            await combat.updateEmbeddedDocuments("Combatant", updates);
+                        }
+                    }
                 }
-                
-                const updates = validTokens.map(t => {
-                    const combatant = combat.combatants.find(c => c.tokenId === t.id);
-                    if (combatant) return { _id: combatant.id, initiative: finalInit };
-                    return null;
-                }).filter(u => u !== null);
-                
-                if (updates.length > 0) {
-                    await combat.updateEmbeddedDocuments("Combatant", updates);
-                }
+            } catch (err) {
+                console.error("Fighty QOL | Averager Error:", err);
+                ui.notifications.error("Group Init Error. Check console (F12) for details.");
             }
         });
     }

@@ -1,4 +1,6 @@
 Hooks.once('init', () => {
+    Handlebars.registerHelper('eq', function (a, b) { return a === b; });
+
     game.settings.register('fighty-qol', 'active', {
         name: 'Escalation Dice Active', hint: 'If disabled, the escalation dice will not appear in combat.',
         scope: 'world', config: true, type: Boolean, default: true
