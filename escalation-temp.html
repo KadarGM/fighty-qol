@@ -1,0 +1,38 @@
+<style>
+    #escalation-auto-app .window-content { background: #2b2b2b !important; color: #e0e0e0 !important; padding: 0 !important; }
+    .ed-btn { cursor: pointer; border: 1px solid #000; padding: 5px; color: white; border-radius: 3px; width: 100%; font-weight: bold; font-size: 1.1em; }
+    .ed-btn-off { background: #2d5a2d; }
+    .ed-btn-on { background: #8b0000; }
+    .ed-item { display: flex; justify-content: space-between; align-items: center; background: #3c3c3c; padding: 5px 8px; margin-bottom: 4px; border-radius: 4px; }
+    .ed-remove { color: #ff6b6b; cursor: pointer; text-decoration: none; font-weight: bold; background: rgba(0,0,0,0.2); padding: 2px 6px; border-radius: 3px; }
+    .ed-remove:hover { color: #ffcccc; text-shadow: 0 0 5px red; }
+</style>
+
+<div style="padding: 12px; font-family: 'Signika', sans-serif;">
+    <p style="font-size: 0.95em; color: #ccc; margin-top: 0; margin-bottom: 12px;">
+        Targets in this list will automatically add the escalation dice to their attack rolls.
+    </p>
+
+    <div style="margin-bottom: 15px; display: flex;">
+        <button type="button" class="toggle-rec ed-btn {{#if isRecording}}ed-btn-on{{else}}ed-btn-off{{/if}}">
+            <i class="fas fa-{{#if isRecording}}stop-circle{{else}}plus-circle{{/if}}"></i> 
+            {{#if isRecording}} STOP recording targets {{else}} START adding targets {{/if}}
+        </button>
+    </div>
+
+    <h3 style="border-bottom: 1px solid #555; margin-bottom: 5px; color: #fff;">Automated targets ({{actors.length}})</h3>
+    <ul style="list-style: none; padding: 0; margin: 0 0 10px 0; max-height: 180px; overflow-y: auto;">
+        {{#each actors}}
+        <li class="ed-item">
+            <span>{{this.name}}</span>
+            <a class="rem-actor ed-remove" data-id="{{this.id}}" title="Remove"><i class="fas fa-minus"></i></a>
+        </li>
+        {{else}}
+        <li style="color: #888; text-align: center; margin-top: 10px;">No targets selected</li>
+        {{/each}}
+    </ul>
+
+    <button type="button" class="clr-actors ed-btn" style="background: #5a2d2d; font-size: 0.9em;">
+        <i class="fas fa-trash"></i> CLEAR ALL
+    </button>
+</div>

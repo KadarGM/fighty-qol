@@ -1,0 +1,22 @@
+{
+  "id": "fighty-qol",
+  "title": "Fighty QOL",
+  "description": "Combines Escalation Dice Automation and Group Initiative Averager.",
+  "version": "1.0.0",
+  "compatibility": {
+    "minimum": "12",
+    "verified": "13"
+  },
+  "authors": [
+    {
+      "name": "KadarGM"
+    }
+  ],
+  "scripts": [
+    "setting.js",
+    "main.js",
+    "escalation.js",
+    "escalation-auto.js",
+    "averager.js"
+  ]
+}
