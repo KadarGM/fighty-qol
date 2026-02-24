@@ -2,7 +2,7 @@
   "id": "fighty-qol",
   "title": "Fighty QOL",
   "description": "A combat QOL module combining an automated Escalation Dice system and a Group Initiative Averager.",
-  "version": "1.0.3",
+  "version": "0.0.3",
   "compatibility": {
     "minimum": "12",
     "verified": "13"
