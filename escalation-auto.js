@@ -89,3 +89,63 @@ class EscalationAutoApp extends Application {
         });
     }
 }
+
+async function manageEscalationBuffs() {
+    if (!game.user.isGM) return;
+
+    const isAutomationEnabled = game.settings.get('fighty-qol', 'enableAutomation');
+    if (!isAutomationEnabled) return;
+
+    const isActive = game.settings.get('fighty-qol', 'active');
+    const combat = game.combat;
+    let currentBonus = 0;
+
+    if (isActive && combat && combat.started) {
+        const startRound = game.settings.get('fighty-qol', 'startRound');
+        if (combat.round >= startRound) {
+            const intervalDivider = game.settings.get('fighty-qol', 'interval') + 1;
+            const bonusStep = game.settings.get('fighty-qol', 'bonusStep');
+            const maxBonus = game.settings.get('fighty-qol', 'maxBonus');
+
+            const roundsActive = combat.round - startRound;
+            const triggers = Math.floor(roundsActive / intervalDivider) + 1;
+            currentBonus = Math.min(triggers * bonusStep, maxBonus);
+        }
+    }
+
+    const automatedActors = game.settings.get('fighty-qol', 'automatedActors') || [];
+
+    for (let target of automatedActors) {
+        const actor = await fromUuid(target.id);
+        if (!actor) continue;
+
+        const existingEffect = actor.effects.find(e => e.flags?.["fighty-qol"]?.isEscalation);
+
+        if (currentBonus > 0) {
+            const effectData = {
+                name: "Escalation Dice",
+                icon: "icons/skills/melee/strike-sword-blood-red.webp",
+                changes: [
+                    { key: "system.bonuses.mwak.attack", mode: 2, value: `+${currentBonus}` },
+                    { key: "system.bonuses.rwak.attack", mode: 2, value: `+${currentBonus}` },
+                    { key: "system.bonuses.msak.attack", mode: 2, value: `+${currentBonus}` },
+                    { key: "system.bonuses.rsak.attack", mode: 2, value: `+${currentBonus}` }
+                ],
+                flags: { "fighty-qol": { isEscalation: true } }
+            };
+
+            if (existingEffect) {
+                if (existingEffect.changes[0].value !== `+${currentBonus}`) {
+                    await existingEffect.update({ changes: effectData.changes });
+                }
+            } else {
+                await actor.createEmbeddedDocuments("ActiveEffect", [effectData]);
+            }
+        } else {
+            if (existingEffect) await existingEffect.delete();
+        }
+    }
+}
+
+Hooks.on("updateCombat", () => { manageEscalationBuffs(); });
+Hooks.on("deleteCombat", () => { manageEscalationBuffs(); });

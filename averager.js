@@ -87,12 +87,118 @@ class GroupInitApp extends Application {
         html.find('select[name="calcMethod"]').change(async (ev) => await game.settings.set('fighty-qol', 'calcMethod', ev.target.value));
         html.find('select[name="rollMode"]').change(async (ev) => await game.settings.set('fighty-qol', 'rollMode', ev.target.value));
         
-        html.find('.roll-init').click(() => {
-            if(window.GroupInitRecording) {
+        html.find('.roll-init').click(async () => {
+            if (window.GroupInitRecording) {
                 window.GroupInitRecording = false;
                 this.render(true);
             }
-            // Zde zavoláš logiku pro hody kostkou, tu pravděpodobně už máš hotovou jinde.
+
+            if (window.GroupInitTokens.length === 0) {
+                ui.notifications.warn("No tokens selected for Group Initiative.");
+                return;
+            }
+
+            const autoAdd = game.settings.get('fighty-qol', 'autoAdd');
+            const useBonuses = game.settings.get('fighty-qol', 'useBonuses');
+            const calcMethod = game.settings.get('fighty-qol', 'calcMethod');
+            const rollMode = game.settings.get('fighty-qol', 'rollMode');
+            
+            const validTokens = canvas.tokens.placeables.filter(t => window.GroupInitTokens.find(wt => wt.id === t.id));
+            
+            if (validTokens.length === 0) {
+                ui.notifications.warn("Selected tokens are not present on the current scene.");
+                return;
+            }
+
+            let rolls = [];
+            let chatDetails = "";
+
+            for (let t of validTokens) {
+                let initBonus = 0;
+                if (useBonuses && t.actor && t.actor.system.attributes?.init) {
+                    initBonus = t.actor.system.attributes.init.bonus || 0;
+                }
+
+                let formula = "1d20";
+                if (rollMode === "advantage") formula = "2d20kh";
+                if (rollMode === "disadvantage") formula = "2d20kl";
+                
+                if (initBonus > 0) formula += ` + ${initBonus}`;
+                else if (initBonus < 0) formula += ` - ${Math.abs(initBonus)}`;
+
+                let roll = await new Roll(formula).evaluate();
+                rolls.push(roll.total);
+                
+                chatDetails += `<div style="display: flex; justify-content: space-between; border-bottom: 1px solid #ccc; padding: 2px 0;">
+                    <span>${t.name}</span>
+                    <strong>${roll.total}</strong>
+                </div>`;
+            }
+
+            let finalInit = 0;
+            let methodText = "";
+
+            if (calcMethod === 'avg') {
+                const sum = rolls.reduce((a, b) => a + b, 0);
+                finalInit = Math.ceil(sum / rolls.length);
+                methodText = "Average";
+            } else if (calcMethod === 'median') {
+                rolls.sort((a, b) => a - b);
+                const mid = Math.floor(rolls.length / 2);
+                finalInit = rolls.length % 2 !== 0 ? rolls[mid] : Math.ceil((rolls[mid - 1] + rolls[mid]) / 2);
+                methodText = "Median";
+            } else if (calcMethod === 'high') {
+                finalInit = Math.max(...rolls);
+                methodText = "Highest";
+            } else if (calcMethod === 'low') {
+                finalInit = Math.min(...rolls);
+                methodText = "Lowest";
+            }
+
+            let combat = game.combat;
+            let chatHtml = `
+                <div style="font-family: 'Signika', sans-serif;">
+                    <h3 style="border-bottom: 2px solid #333; margin-bottom: 5px;">Group Initiative</h3>
+                    <div style="font-size: 0.9em; margin-bottom: 10px;">
+                        ${chatDetails}
+                    </div>
+                    <div>
+                        <h4 title="Calculation Method: ${methodText}, Roll Mode: ${rollMode}" style="color: black; font-size: 1.2em; text-align: center; background: #e0e0e0; padding: 5px; margin-top: 5px; border-radius: 3px;">
+                            ${methodText}: ${finalInit}
+                        </h4>
+                    </div>
+                </div>
+            `;
+
+            await ChatMessage.create({
+                user: game.user.id,
+                speaker: ChatMessage.getSpeaker({alias: "DM - Group Initiative"}),
+                content: chatHtml
+            });
+
+            if (autoAdd) {
+                if (!combat) combat = await Combat.create({ scene: canvas.scene.id, active: true });
+                
+                const toAdd = validTokens.filter(t => !t.inCombat).map(t => ({
+                    tokenId: t.id,
+                    sceneId: t.scene.id,
+                    actorId: t.document.actorId,
+                    hidden: t.document.hidden
+                }));
+                if (toAdd.length > 0) {
+                    await combat.createEmbeddedDocuments("Combatant", toAdd);
+                }
+                
+                const updates = validTokens.map(t => {
+                    const combatant = combat.combatants.find(c => c.tokenId === t.id);
+                    if (combatant) return { _id: combatant.id, initiative: finalInit };
+                    return null;
+                }).filter(u => u !== null);
+                
+                if (updates.length > 0) {
+                    await combat.updateEmbeddedDocuments("Combatant", updates);
+                }
+            }
         });
     }
 }
