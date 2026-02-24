@@ -8,6 +8,7 @@ Hooks.on('deleteCombat', () => { checkEscalation(true); });
 function checkEscalation(isDeleting = false, skipChat = false) {
     let container = document.getElementById("escalation-dice-widget");
     const isActive = game.settings.get('fighty-qol', 'active');
+    const isVisible = game.settings.get('fighty-qol', 'visibility');
     const combat = game.combat;
     
     let showWidget = false;
@@ -54,7 +55,7 @@ function checkEscalation(isDeleting = false, skipChat = false) {
         }
     }
 
-    if (!showWidget) {
+    if (!showWidget || !isVisible) {
         if (container) container.style.display = "none";
         return;
     }

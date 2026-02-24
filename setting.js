@@ -38,7 +38,12 @@ Hooks.once('init', () => {
     Handlebars.registerHelper('eq', function (a, b) { return a === b; });
 
     game.settings.register('fighty-qol', 'active', {
-        name: 'Enable Escalation Dice',
+        name: 'Enable Escalation System (Master)',
+        scope: 'world', config: true, type: Boolean, default: true
+    });
+
+    game.settings.register('fighty-qol', 'visibility', {
+        name: 'Show Escalation Dice Widget',
         scope: 'world', config: true, type: Boolean, default: true
     });
 

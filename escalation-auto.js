@@ -5,14 +5,16 @@ Hooks.on("renderSceneControls", () => {
     if (!layers) return;
 
     const existingBtn = document.querySelector("button[data-control='escalation-auto-toggle']");
-    const isEnabled = game.user?.isGM && game.settings.get('fighty-qol', 'enableAutomation');
+    const isSystemActive = game.settings.get('fighty-qol', 'active');
+    const isAutomationEnabled = game.settings.get('fighty-qol', 'enableAutomation');
+    const isEnabled = game.user?.isGM && isSystemActive && isAutomationEnabled;
 
     if (!isEnabled) {
         if (existingBtn && existingBtn.parentElement) existingBtn.parentElement.remove();
         return;
     }
 
-   if (!existingBtn) {
+    if (!existingBtn) {
         layers.insertAdjacentHTML("beforeend", `
             <li>
                 <button type="button" class="control ui-control" role="tab" data-control="escalation-auto-toggle" data-tooltip="Escalation Dice - Automation" style="background-image: url('modules/fighty-qol/img/escalation-icon.webp'); background-size: 80%; background-repeat: no-repeat; background-position: center;"></button>
@@ -97,14 +99,12 @@ async function manageEscalationBuffs(isDeleting = false) {
     if (!game.user.isGM) return;
 
     try {
+        const isSystemActive = game.settings.get('fighty-qol', 'active');
         const isAutomationEnabled = game.settings.get('fighty-qol', 'enableAutomation');
-        if (!isAutomationEnabled) return;
-
-        const isActive = game.settings.get('fighty-qol', 'active');
         const combat = game.combat;
         let currentBonus = 0;
 
-        if (isActive && combat && combat.started && !isDeleting) {
+        if (isSystemActive && isAutomationEnabled && combat && combat.started && !isDeleting) {
             const startRound = game.settings.get('fighty-qol', 'startRound');
             if (combat.round >= startRound) {
                 const intervalDivider = game.settings.get('fighty-qol', 'interval') + 1;
