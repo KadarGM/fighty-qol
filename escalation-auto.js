@@ -93,7 +93,7 @@ class EscalationAutoApp extends Application {
     }
 }
 
-async function manageEscalationBuffs() {
+async function manageEscalationBuffs(isDeleting = false) {
     if (!game.user.isGM) return;
 
     try {
@@ -104,7 +104,7 @@ async function manageEscalationBuffs() {
         const combat = game.combat;
         let currentBonus = 0;
 
-        if (isActive && combat && combat.started) {
+        if (isActive && combat && combat.started && !isDeleting) {
             const startRound = game.settings.get('fighty-qol', 'startRound');
             if (combat.round >= startRound) {
                 const intervalDivider = game.settings.get('fighty-qol', 'interval') + 1;
@@ -128,7 +128,7 @@ async function manageEscalationBuffs() {
             if (currentBonus > 0) {
                 const effectData = {
                     name: "Escalation Dice",
-                    img: "icons/skills/melee/strike-sword-blood-red.webp", // <-- opraveno z icon na img pro v12
+                    img: "icons/skills/melee/strike-sword-blood-red.webp",
                     changes: [
                         { key: "system.bonuses.mwak.attack", mode: 2, value: `+${currentBonus}` },
                         { key: "system.bonuses.rwak.attack", mode: 2, value: `+${currentBonus}` },
@@ -154,5 +154,5 @@ async function manageEscalationBuffs() {
     }
 }
 
-Hooks.on("updateCombat", () => { manageEscalationBuffs(); });
-Hooks.on("deleteCombat", () => { manageEscalationBuffs(); });
+Hooks.on("updateCombat", () => { manageEscalationBuffs(false); });
+Hooks.on("deleteCombat", () => { manageEscalationBuffs(true); });

@@ -1,8 +1,8 @@
-Hooks.on('closeSettingsConfig', () => { checkEscalation(); });
-Hooks.on('updateCombat', () => { checkEscalation(); });
-Hooks.on('deleteCombat', () => { checkEscalation(); });
+Hooks.on('closeSettingsConfig', () => { checkEscalation(false); });
+Hooks.on('updateCombat', () => { checkEscalation(false); });
+Hooks.on('deleteCombat', () => { checkEscalation(true); });
 
-function checkEscalation() {
+function checkEscalation(isDeleting = false) {
     let container = document.getElementById("escalation-dice-widget");
     const isActive = game.settings.get('fighty-qol', 'active');
     const combat = game.combat;
@@ -10,7 +10,7 @@ function checkEscalation() {
     let showWidget = false;
     let currentBonus = 0;
 
-    if (isActive && combat && combat.started) {
+    if (isActive && combat && combat.started && !isDeleting) {
         const startRound = game.settings.get('fighty-qol', 'startRound');
         
         if (combat.round >= startRound) {

@@ -1,57 +1,75 @@
+class EscalationSettings extends FormApplication {
+    static get defaultOptions() {
+        return foundry.utils.mergeObject(super.defaultOptions, {
+            id: 'escalation-settings-menu',
+            title: 'Escalation Dice Settings',
+            template: 'modules/fighty-qol/escalation-settings.html',
+            width: 400,
+            height: 'auto',
+            closeOnSubmit: true
+        });
+    }
+
+    getData() {
+        return {
+            startRound: game.settings.get('fighty-qol', 'startRound'),
+            interval: game.settings.get('fighty-qol', 'interval'),
+            bonusStep: game.settings.get('fighty-qol', 'bonusStep'),
+            maxBonus: game.settings.get('fighty-qol', 'maxBonus'),
+            scale: game.settings.get('fighty-qol', 'scale'),
+            opacity: game.settings.get('fighty-qol', 'opacity'),
+            triangleColor: game.settings.get('fighty-qol', 'triangleColor'),
+            textColor: game.settings.get('fighty-qol', 'textColor'),
+            resetPosition: game.settings.get('fighty-qol', 'resetPosition')
+        };
+    }
+
+    async _updateObject(event, formData) {
+        for (let [k, v] of Object.entries(formData)) {
+            await game.settings.set('fighty-qol', k, v);
+        }
+        if (typeof checkEscalation === "function") checkEscalation();
+    }
+}
+
 Hooks.once('init', () => {
     Handlebars.registerHelper('eq', function (a, b) { return a === b; });
 
     game.settings.register('fighty-qol', 'active', {
-        name: 'Escalation Dice Active', hint: 'If disabled, the escalation dice will not appear in combat.',
+        name: 'Enable Escalation Dice',
         scope: 'world', config: true, type: Boolean, default: true
     });
-    game.settings.register('fighty-qol', 'startRound', {
-        name: 'Starting Round', hint: 'The round the bonus is first applied.',
-        scope: 'world', config: true, type: Number, default: 2
-    });
-    game.settings.register('fighty-qol', 'interval', {
-        name: 'Increase Interval', hint: '0 = every round, 1 = every other round.',
-        scope: 'world', config: true, type: Number, default: 0
-    });
-    game.settings.register('fighty-qol', 'bonusStep', {
-        name: 'Bonus Step', hint: 'How much the bonus increases each step.',
-        scope: 'world', config: true, type: Number, default: 1
-    });
-    game.settings.register('fighty-qol', 'maxBonus', {
-        name: 'Maximum Bonus', hint: 'The value at which the escalation dice stops.',
-        scope: 'world', config: true, type: Number, default: 6
-    });
-    game.settings.register('fighty-qol', 'scale', {
-        name: 'Scale', scope: 'client', config: true, type: Number, range: { min: 0.1, max: 2, step: 0.1 }, default: 1
-    });
-    game.settings.register('fighty-qol', 'opacity', {
-        name: 'Opacity', scope: 'client', config: true, type: Number, range: { min: 0.1, max: 1, step: 0.1 }, default: 1
-    });
-    game.settings.register('fighty-qol', 'triangleColor', {
-        name: 'Triangle Color (HEX)', scope: 'client', config: true, type: String, default: '#3a0000'
-    });
-    game.settings.register('fighty-qol', 'textColor', {
-        name: 'Text Color (HEX)', scope: 'client', config: true, type: String, default: '#ffffff'
-    });
-    game.settings.register('fighty-qol', 'resetPosition', {
-        name: 'Reset Window Position', hint: 'Check this and save. The window will return to the center.',
-        scope: 'client', config: true, type: Boolean, default: false
-    });
-    game.settings.register('fighty-qol', 'posX', { scope: 'client', config: false, type: String, default: "" });
-    game.settings.register('fighty-qol', 'posY', { scope: 'client', config: false, type: String, default: "" });
 
     game.settings.register('fighty-qol', 'enableAutomation', {
-        name: 'Enable Escalation Automation', hint: 'Adds a button to the left panel for selecting tokens to automate.',
+        name: 'Enable Escalation Automation',
         scope: 'world', config: true, type: Boolean, default: true
     });
-    game.settings.register('fighty-qol', 'automatedActors', {
-        scope: 'world', config: false, type: Array, default: []
+
+    game.settings.registerMenu('fighty-qol', 'escalationMenu', {
+        name: 'Escalation Settings',
+        label: 'Configure Escalation',
+        icon: 'fas fa-dice-d20',
+        type: EscalationSettings,
+        restricted: true
     });
 
     game.settings.register('fighty-qol', 'enableAverager', {
-        name: 'Enable Group Initiative Averager', hint: 'Adds a button to the left panel for group initiative averaging.',
+        name: 'Enable Group Initiative Averager',
         scope: 'world', config: true, type: Boolean, default: true
     });
+
+    game.settings.register('fighty-qol', 'startRound', { scope: 'world', config: false, type: Number, default: 2 });
+    game.settings.register('fighty-qol', 'interval', { scope: 'world', config: false, type: Number, default: 0 });
+    game.settings.register('fighty-qol', 'bonusStep', { scope: 'world', config: false, type: Number, default: 1 });
+    game.settings.register('fighty-qol', 'maxBonus', { scope: 'world', config: false, type: Number, default: 6 });
+    game.settings.register('fighty-qol', 'scale', { scope: 'client', config: false, type: Number, default: 1 });
+    game.settings.register('fighty-qol', 'opacity', { scope: 'client', config: false, type: Number, default: 1 });
+    game.settings.register('fighty-qol', 'triangleColor', { scope: 'client', config: false, type: String, default: '#3a0000' });
+    game.settings.register('fighty-qol', 'textColor', { scope: 'client', config: false, type: String, default: '#ffffff' });
+    game.settings.register('fighty-qol', 'resetPosition', { scope: 'client', config: false, type: Boolean, default: false });
+    game.settings.register('fighty-qol', 'posX', { scope: 'client', config: false, type: String, default: "" });
+    game.settings.register('fighty-qol', 'posY', { scope: 'client', config: false, type: String, default: "" });
+    game.settings.register('fighty-qol', 'automatedActors', { scope: 'world', config: false, type: Array, default: [] });
     game.settings.register('fighty-qol', 'autoAdd', { scope: 'world', config: false, type: Boolean, default: true });
     game.settings.register('fighty-qol', 'useBonuses', { scope: 'world', config: false, type: Boolean, default: true });
     game.settings.register('fighty-qol', 'calcMethod', { scope: 'world', config: false, type: String, default: 'avg' });
