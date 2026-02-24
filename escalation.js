@@ -1,8 +1,11 @@
-Hooks.on('closeSettingsConfig', () => { checkEscalation(false); });
+window.FightyQolLastBonus = window.FightyQolLastBonus || 0;
+window.FightyQolLastCombatId = window.FightyQolLastCombatId || null;
+
+Hooks.on('closeSettingsConfig', () => { checkEscalation(false, true); });
 Hooks.on('updateCombat', () => { checkEscalation(false); });
 Hooks.on('deleteCombat', () => { checkEscalation(true); });
 
-function checkEscalation(isDeleting = false) {
+function checkEscalation(isDeleting = false, skipChat = false) {
     let container = document.getElementById("escalation-dice-widget");
     const isActive = game.settings.get('fighty-qol', 'active');
     const combat = game.combat;
@@ -22,6 +25,32 @@ function checkEscalation(isDeleting = false) {
             const roundsActive = combat.round - startRound;
             const triggers = Math.floor(roundsActive / intervalDivider) + 1;
             currentBonus = Math.min(triggers * bonusStep, maxBonus);
+        }
+
+        if (game.user.isGM && !skipChat) {
+            if (window.FightyQolLastCombatId !== combat.id) {
+                window.FightyQolLastCombatId = combat.id;
+                window.FightyQolLastBonus = 0;
+            }
+            
+            if (currentBonus > window.FightyQolLastBonus) {
+                window.FightyQolLastBonus = currentBonus;
+                if (game.settings.get('fighty-qol', 'chatMessageEnabled')) {
+                    let text = game.settings.get('fighty-qol', 'chatMessageText');
+                    text = text.replace('{bonus}', `+${currentBonus}`);
+                    ChatMessage.create({
+                        speaker: ChatMessage.getSpeaker({alias: "Escalation Dice"}),
+                        content: `<div style="font-size: 1.2em; font-weight: bold; text-align: center; color: #8b0000; padding: 5px; background: rgba(0,0,0,0.1); border-radius: 4px;">${text}</div>`
+                    });
+                }
+            } else if (currentBonus < window.FightyQolLastBonus) {
+                window.FightyQolLastBonus = currentBonus;
+            }
+        }
+    } else {
+        if (game.user.isGM && isDeleting) {
+            window.FightyQolLastBonus = 0;
+            window.FightyQolLastCombatId = null;
         }
     }
 

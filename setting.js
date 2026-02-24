@@ -4,7 +4,7 @@ class EscalationSettings extends FormApplication {
             id: 'escalation-settings-menu',
             title: 'Escalation Dice Settings',
             template: 'modules/fighty-qol/escalation-settings.html',
-            width: 400,
+            width: 450,
             height: 'auto',
             closeOnSubmit: true
         });
@@ -20,7 +20,9 @@ class EscalationSettings extends FormApplication {
             opacity: game.settings.get('fighty-qol', 'opacity'),
             triangleColor: game.settings.get('fighty-qol', 'triangleColor'),
             textColor: game.settings.get('fighty-qol', 'textColor'),
-            resetPosition: game.settings.get('fighty-qol', 'resetPosition')
+            resetPosition: game.settings.get('fighty-qol', 'resetPosition'),
+            chatMessageEnabled: game.settings.get('fighty-qol', 'chatMessageEnabled'),
+            chatMessageText: game.settings.get('fighty-qol', 'chatMessageText')
         };
     }
 
@@ -28,7 +30,7 @@ class EscalationSettings extends FormApplication {
         for (let [k, v] of Object.entries(formData)) {
             await game.settings.set('fighty-qol', k, v);
         }
-        if (typeof checkEscalation === "function") checkEscalation();
+        if (typeof checkEscalation === "function") checkEscalation(false, true);
     }
 }
 
@@ -74,4 +76,6 @@ Hooks.once('init', () => {
     game.settings.register('fighty-qol', 'useBonuses', { scope: 'world', config: false, type: Boolean, default: true });
     game.settings.register('fighty-qol', 'calcMethod', { scope: 'world', config: false, type: String, default: 'avg' });
     game.settings.register('fighty-qol', 'rollMode', { scope: 'world', config: false, type: String, default: 'normal' });
+    game.settings.register('fighty-qol', 'chatMessageEnabled', { scope: 'world', config: false, type: Boolean, default: false });
+    game.settings.register('fighty-qol', 'chatMessageText', { scope: 'world', config: false, type: String, default: "Escalation dice increases to {bonus}!" });
 });
