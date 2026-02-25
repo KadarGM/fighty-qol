@@ -5,42 +5,39 @@ class VFXorMain {
     }
 
     static registerHooks() {
-        Hooks.on("dnd5e.preUseItem", this._onPreUseItem.bind(this));
+        Hooks.on("dnd5e.preUseItem", (item, config, options) => this._onPreUse(item, config, options));
+        Hooks.on("dnd5e.preUseActivity", (activity, usageConfig, dialogs) => this._onPreUse(activity, usageConfig, dialogs));
     }
 
-    static _onPreUseItem(item, config, options) {
+    static _onPreUse(entity, config, options) {
+        const item = entity.item || entity;
         if (!["spell", "feat", "weapon"].includes(item.type)) return true;
 
         const targets = game.user.targets;
-        if (targets.size > 0) {
-            options.vfxorSkip = false;
-            return true;
-        }
+        if (targets.size > 0) return true;
 
         const autoSkip = game.settings.get('fighty-qol', 'autoSkipNoTarget');
-        if (autoSkip) {
-            options.vfxorSkip = true;
-            return true;
-        }
+        if (autoSkip) return true;
 
-        if (options.vfxorPrompted) return true;
+        if (config && config.vfxorPrompted) return true;
 
-        this._showTargetDialog(item, config, options);
+        this._showTargetDialog(entity, config, options);
         return false; 
     }
 
-    static _showTargetDialog(item, config, options) {
+    static _showTargetDialog(entity, config, options) {
         new Dialog({
             title: "VFXor: Missing Target",
-            content: `<p style="text-align: center; margin-bottom: 15px;">You are casting/attacking without a target.<br>Do you want to skip the animation or select targets?</p>`,
+            content: `<p style="text-align: center; margin-bottom: 15px;">You are casting or attacking without a target.<br>Do you want to skip the animation or select targets?</p>`,
             buttons: {
                 skip: {
                     icon: '<i class="fas fa-forward"></i>',
                     label: "Skip Animation",
                     callback: () => {
-                        options.vfxorSkip = true;
-                        options.vfxorPrompted = true;
-                        item.use(config, options);
+                        if (!config) config = {};
+                        config.vfxorPrompted = true;
+                        config.vfxorSkip = true;
+                        entity.use(config, options);
                     }
                 },
                 target: {
