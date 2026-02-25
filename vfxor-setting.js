@@ -1,97 +1,56 @@
-class VFXorEditor extends FormApplication {
-    constructor(...args) {
-        super(...args);
-        this.localEffects = foundry.utils.deepClone(game.settings.get('fighty-qol', 'vfxEffects') || {});
-        this.currentEffectId = Object.keys(this.localEffects)[0] || null;
-    }
-
+class VFXorSettings extends FormApplication {
     static get defaultOptions() {
         return foundry.utils.mergeObject(super.defaultOptions, {
-            id: 'vfxor-editor',
+            id: 'vfxor-settings-menu',
             classes: ["vfxor-window"],
-            title: 'VFXor Editor',
-            template: 'modules/fighty-qol/vfxor-editor-temp.html',
-            width: 850,
-            height: 650,
-            resizable: true,
-            closeOnSubmit: false
+            title: 'VFXor Settings',
+            template: 'modules/fighty-qol/vfxor-setting-temp.html',
+            width: 400,
+            height: 'auto',
+            closeOnSubmit: true
         });
     }
 
     getData() {
         return {
-            effects: this.localEffects,
-            currentEffectId: this.currentEffectId,
-            currentEffect: this.currentEffectId ? this.localEffects[this.currentEffectId] : null
+            autoSkipNoTarget: game.settings.get('fighty-qol', 'autoSkipNoTarget')
         };
     }
 
     activateListeners(html) {
         super.activateListeners(html);
 
-        html.find('#vfxor-add-effect').click(ev => {
-            this._updateLocalFromForm();
-            const id = foundry.utils.randomID();
-            this.localEffects[id] = { name: "New Effect", steps: [] };
-            this.currentEffectId = id;
-            this.render(true);
-        });
-
-        html.find('.vfxor-select-effect').click(ev => {
-            this._updateLocalFromForm();
-            this.currentEffectId = ev.currentTarget.dataset.id;
-            this.render(true);
-        });
-
-        html.find('.vfxor-delete-effect').click(async ev => {
-            this._updateLocalFromForm();
-            const id = ev.currentTarget.dataset.id;
-            delete this.localEffects[id];
-            if (this.currentEffectId === id) {
-                this.currentEffectId = Object.keys(this.localEffects)[0] || null;
+        html.find('#vfxor-open-editor').click(async (ev) => {
+            ev.preventDefault();
+            if (typeof VFXorEditor !== "undefined") {
+                new VFXorEditor().render(true);
+                this.close();
+            } else {
+                ui.notifications.error("VFXor Editor class not found.");
             }
-            this.render(true);
         });
 
-        html.find('#vfxor-add-step').click(ev => {
-            if (!this.currentEffectId) return;
-            this._updateLocalFromForm();
-            if (!this.localEffects[this.currentEffectId].steps) {
-                this.localEffects[this.currentEffectId].steps = [];
+        html.find('#vfxor-clear-data').click(async (ev) => {
+            ev.preventDefault();
+            const confirm = await Dialog.confirm({
+                title: "Clear VFXor Data",
+                content: "<p>Are you sure you want to delete all VFXor effects and dictionary data? This cannot be undone.</p>",
+                yes: () => true,
+                no: () => false,
+                defaultYes: false
+            });
+
+            if (confirm) {
+                await game.settings.set('fighty-qol', 'vfxEffects', {});
+                await game.settings.set('fighty-qol', 'vfxDictionary', {});
+                ui.notifications.info("VFXor data cleared.");
             }
-            this.localEffects[this.currentEffectId].steps.push({ type: "anim", file: "" });
-            this.render(true);
         });
-
-        html.find('.vfxor-delete-step').click(ev => {
-            if (!this.currentEffectId) return;
-            this._updateLocalFromForm();
-            const index = Number(ev.currentTarget.dataset.index);
-            this.localEffects[this.currentEffectId].steps.splice(index, 1);
-            this.render(true);
-        });
-    }
-
-    _updateLocalFromForm() {
-        if (!this.form) return;
-        const formData = this._getSubmitData();
-        const expanded = foundry.utils.expandObject(formData);
-        
-        if (expanded.effects) {
-            for (let [id, data] of Object.entries(expanded.effects)) {
-                if (this.localEffects[id]) {
-                    this.localEffects[id].name = data.name;
-                    this.localEffects[id].steps = data.steps ? Object.values(data.steps) : [];
-                }
-            }
-        }
     }
 
     async _updateObject(event, formData) {
-        this._updateLocalFromForm();
-        await game.settings.set('fighty-qol', 'vfxEffects', this.localEffects);
-        ui.notifications.success("VFXor effects saved successfully.");
+        await game.settings.set('fighty-qol', 'autoSkipNoTarget', formData.autoSkipNoTarget);
     }
 }
 
-window.VFXorEditor = VFXorEditor;
+window.VFXorSettings = VFXorSettings;
