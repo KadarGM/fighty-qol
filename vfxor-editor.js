@@ -12,7 +12,7 @@ class VFXorEditor extends FormApplication {
             title: 'VFXor Editor',
             template: 'modules/fighty-qol/vfxor-editor-temp.html',
             width: 850,
-            height: 650,
+            height: 750,
             resizable: true,
             closeOnSubmit: false
         });
@@ -32,7 +32,7 @@ class VFXorEditor extends FormApplication {
         html.find('#vfxor-add-effect').click(ev => {
             this._updateLocalFromForm();
             const id = foundry.utils.randomID();
-            this.localEffects[id] = { name: "New Effect", steps: [] };
+            this.localEffects[id] = { name: "New Effect", layers: [] };
             this.currentEffectId = id;
             this.render(true);
         });
@@ -53,22 +53,73 @@ class VFXorEditor extends FormApplication {
             this.render(true);
         });
 
-        html.find('#vfxor-add-step').click(ev => {
+        html.find('#vfxor-add-layer').click(ev => {
             if (!this.currentEffectId) return;
             this._updateLocalFromForm();
-            if (!this.localEffects[this.currentEffectId].steps) {
-                this.localEffects[this.currentEffectId].steps = [];
+            if (!this.localEffects[this.currentEffectId].layers) {
+                this.localEffects[this.currentEffectId].layers = [];
             }
-            this.localEffects[this.currentEffectId].steps.push({ type: "anim", file: "" });
+            this.localEffects[this.currentEffectId].layers.push({ 
+                file: "", delay: 0, scale: 1, speed: 1, tint: "#ffffff" 
+            });
             this.render(true);
         });
 
-        html.find('.vfxor-delete-step').click(ev => {
+        html.find('.vfxor-delete-layer').click(ev => {
             if (!this.currentEffectId) return;
             this._updateLocalFromForm();
             const index = Number(ev.currentTarget.dataset.index);
-            this.localEffects[this.currentEffectId].steps.splice(index, 1);
+            this.localEffects[this.currentEffectId].layers.splice(index, 1);
             this.render(true);
+        });
+
+        html.find('.vfxor-file-picker').click(ev => {
+            ev.preventDefault();
+            const target = ev.currentTarget.dataset.target;
+            const input = html.find(`input[name="${target}"]`);
+            new FilePicker({
+                type: "video",
+                current: input.val(),
+                callback: path => {
+                    input.val(path);
+                    this._updateLocalFromForm();
+                }
+            }).browse();
+        });
+
+        html.find('.vfxor-preview-effect').click(ev => {
+            this._updateLocalFromForm();
+            this._playPreview(html);
+        });
+    }
+
+    _playPreview(html) {
+        if (!this.currentEffectId) return;
+        const effect = this.localEffects[this.currentEffectId];
+        if (!effect || !effect.layers) return;
+
+        const screen = html.find('#vfxor-preview-screen');
+        screen.find('.vfx-layer-preview').remove();
+
+        effect.layers.forEach(layer => {
+            if (!layer.file) return;
+
+            setTimeout(() => {
+                const isVideo = layer.file.endsWith('.webm') || layer.file.endsWith('.mp4');
+                const style = `position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(${layer.scale || 1}); mix-blend-mode: screen; pointer-events: none;`;
+
+                let el;
+                if (isVideo) {
+                    el = $(`<video class="vfx-layer-preview" src="${layer.file}" style="${style}" autoplay muted></video>`);
+                    el[0].playbackRate = layer.speed || 1;
+                    el.on('ended', function() { $(this).remove(); });
+                } else {
+                    el = $(`<img class="vfx-layer-preview" src="${layer.file}" style="${style}">`);
+                    setTimeout(() => el.remove(), 2000);
+                }
+
+                screen.append(el);
+            }, layer.delay || 0);
         });
     }
 
@@ -81,7 +132,7 @@ class VFXorEditor extends FormApplication {
             for (let [id, data] of Object.entries(expanded.effects)) {
                 if (this.localEffects[id]) {
                     this.localEffects[id].name = data.name;
-                    this.localEffects[id].steps = data.steps ? Object.values(data.steps) : [];
+                    this.localEffects[id].layers = data.layers ? Object.values(data.layers) : [];
                 }
             }
         }

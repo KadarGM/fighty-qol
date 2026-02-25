@@ -22,7 +22,7 @@
         <div class="vfxor-workspace" style="flex-grow: 1; padding-left: 15px; overflow-y: auto; display: flex; flex-direction: column;">
             {{#if currentEffectId}}
             
-            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 15px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 10px;">
                 <div class="form-group" style="flex-grow: 1; margin-right: 15px;">
                     <label style="font-size: 1.2em; font-weight: bold; margin-bottom: 5px; display: block;">Effect Name</label>
                     <input type="text" name="effects.{{currentEffectId}}.name" value="{{currentEffect.name}}" style="font-size: 1.1em; padding: 5px; width: 100%;">
@@ -31,9 +31,13 @@
                     <i class="fas fa-play"></i> Play Preview
                 </button>
             </div>
+
+            <div id="vfxor-preview-screen" style="width: 100%; height: 250px; background: #000; border: 1px solid #444; border-radius: 5px; position: relative; overflow: hidden; margin-bottom: 15px; flex-shrink: 0; display: flex; justify-content: center; align-items: center; background-image: radial-gradient(circle, #222 10%, #000 80%);">
+                <span style="position: absolute; bottom: 5px; right: 10px; color: #444; font-size: 0.8em; font-weight: bold;">PREVIEW WINDOW</span>
+            </div>
             
-            <hr style="border-color: #444; margin-bottom: 15px;">
-            <h3 style="margin-top: 0; color: #aaa;">Visual Layers</h3>
+            <hr style="border-color: #444; margin-bottom: 15px; flex-shrink: 0;">
+            <h3 style="margin-top: 0; color: #aaa; flex-shrink: 0;">Visual Layers</h3>
             
             <div id="vfxor-layers-container" style="flex-grow: 1;">
                 {{#each currentEffect.layers as |layer index|}}
@@ -49,7 +53,7 @@
                     <div class="form-group" style="margin-bottom: 10px;">
                         <label>Animation File (.webm / .webp)</label>
                         <div style="display: flex; gap: 5px;">
-                            <input type="text" class="vfx-file-input" name="effects.{{../currentEffectId}}.layers.{{index}}.file" value="{{layer.file}}" style="flex-grow: 1;">
+                            <input type="text" name="effects.{{../currentEffectId}}.layers.{{index}}.file" value="{{layer.file}}" style="flex-grow: 1;">
                             <button type="button" class="vfxor-file-picker" data-target="effects.{{../currentEffectId}}.layers.{{index}}.file" style="width: 40px; background: #444;">
                                 <i class="fas fa-folder-open"></i>
                             </button>
@@ -58,7 +62,7 @@
 
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                         <div class="form-group">
-                            <label>Delay (ms) <span style="font-weight: normal; color: #888;">(0 = instant)</span></label>
+                            <label>Delay (ms)</label>
                             <input type="number" name="effects.{{../currentEffectId}}.layers.{{index}}.delay" value="{{layer.delay}}" step="100">
                         </div>
                         <div class="form-group">
@@ -81,7 +85,7 @@
                 {{/each}}
             </div>
             
-            <button type="button" id="vfxor-add-layer" style="margin-top: 10px; background: #333; border: 1px dashed #777;">
+            <button type="button" id="vfxor-add-layer" style="margin-top: 10px; background: #333; border: 1px dashed #777; flex-shrink: 0;">
                 <i class="fas fa-plus"></i> Add New Layer
             </button>
             
@@ -94,7 +98,7 @@
         </div>
     </div>
     
-    <div style="padding-top: 15px; border-top: 1px solid #555; margin-top: 15px;">
+    <div style="padding-top: 15px; border-top: 1px solid #555; margin-top: 15px; flex-shrink: 0;">
         <button type="submit" style="width: 100%; font-size: 1.1em; padding: 8px; background: #004080;">
             <i class="fas fa-save"></i> Save Effects
         </button>
