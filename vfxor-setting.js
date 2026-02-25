@@ -2,6 +2,7 @@ class VFXorSettings extends FormApplication {
     static get defaultOptions() {
         return foundry.utils.mergeObject(super.defaultOptions, {
             id: 'vfxor-settings-menu',
+            classes: ["vfxor-window"],
             title: 'VFXor Settings',
             template: 'modules/fighty-qol/vfxor-setting-temp.html',
             width: 400,
