@@ -79,7 +79,7 @@ Hooks.once('init', () => {
         name: 'VFXor Settings',
         label: 'Configure VFXor',
         icon: 'fas fa-wand-magic-sparkles',
-        type: typeof VFXorSettings !== "undefined" ? VFXorSettings : FormApplication,
+        type: VFXorSettings,
         restricted: true
     });
 });
