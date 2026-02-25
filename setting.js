@@ -65,6 +65,23 @@ Hooks.once('init', () => {
         scope: 'world', config: true, type: Boolean, default: true
     });
 
+    game.settings.register('fighty-qol', 'enableVFXor', {
+        name: 'Enable VFXor System',
+        scope: 'client', config: true, type: Boolean, default: true
+    });
+
+    game.settings.registerMenu('fighty-qol', 'vfxorMenu', {
+        name: 'VFXor Settings',
+        label: 'Configure VFXor',
+        icon: 'fas fa-wand-magic-sparkles',
+        type: VFXorSettings,
+        restricted: true
+    });
+
+    game.settings.register('fighty-qol', 'vfxEffects', { scope: 'world', config: false, type: Object, default: {} });
+    game.settings.register('fighty-qol', 'vfxDictionary', { scope: 'world', config: false, type: Object, default: {} });
+    game.settings.register('fighty-qol', 'autoSkipNoTarget', { scope: 'world', config: false, type: Boolean, default: false });
+
     game.settings.register('fighty-qol', 'startRound', { scope: 'world', config: false, type: Number, default: 2 });
     game.settings.register('fighty-qol', 'interval', { scope: 'world', config: false, type: Number, default: 0 });
     game.settings.register('fighty-qol', 'bonusStep', { scope: 'world', config: false, type: Number, default: 1 });

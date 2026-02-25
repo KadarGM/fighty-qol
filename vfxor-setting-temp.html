@@ -1,0 +1,28 @@
+<div class="vfxor-settings-wrapper" style="padding: 10px; font-family: 'Signika', sans-serif;">
+    <form autocomplete="off">
+        <div class="form-group" style="border-bottom: 1px solid #444; padding-bottom: 10px;">
+            <label style="font-weight: bold;">Auto-Skip Animation if No Target</label>
+            <div class="form-fields">
+                <input type="checkbox" name="autoSkipNoTarget" {{#if autoSkipNoTarget}}checked{{/if}}>
+            </div>
+            <p style="color: #999; font-size: 0.8em; margin: 4px 0 0 0;">If checked, no dialog will appear when casting without targets; animations will simply be skipped.</p>
+        </div>
+
+        <div class="form-group" style="display: flex; flex-direction: column; gap: 10px; margin-top: 15px;">
+            <button type="button" id="vfxor-open-editor" style="background: #2d5a2d; color: white; border: 1px solid #000; cursor: pointer; padding: 8px;">
+                <i class="fas fa-hammer"></i> Open VFXor Editor
+            </button>
+            <button type="button" id="vfxor-clear-data" style="background: #8b0000; color: white; border: 1px solid #000; cursor: pointer; padding: 8px;">
+                <i class="fas fa-trash"></i> Clear All VFXor Data
+            </button>
+        </div>
+
+        <hr style="border-color: #444; margin: 15px 0;">
+
+        <div class="form-group">
+            <button type="submit" name="submit" style="cursor: pointer;">
+                <i class="fas fa-save"></i> Save Settings
+            </button>
+        </div>
+    </form>
+</div>

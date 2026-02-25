@@ -2,7 +2,7 @@
   "id": "fighty-qol",
   "title": "Fighty QOL",
   "description": "A combat QOL module combining an automated Escalation Dice system and a Group Initiative Averager.",
-  "version": "0.0.5",
+  "version": "0.1.0",
   "compatibility": {
     "minimum": "12",
     "verified": "13"
@@ -14,10 +14,17 @@
   ],
   "manifest": "https://raw.githubusercontent.com/KadarGM/fighty-qol/main/module.json",
   "download": "https://github.com/KadarGM/fighty-qol/archive/refs/heads/main.zip",
+  "styles": [
+    "fighty-qol.css"
+  ],
   "scripts": [
+    "vfxor-setting.js",
     "setting.js",
     "escalation.js",
     "escalation-auto.js",
-    "averager.js"
+    "averager.js",
+    "vfxor-dictionary.js",
+    "vfxor-editor.js",
+    "vfxor-main.js"
   ]
 }
