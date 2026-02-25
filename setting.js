@@ -37,50 +37,11 @@ class EscalationSettings extends FormApplication {
 Hooks.once('init', () => {
     Handlebars.registerHelper('eq', function (a, b) { return a === b; });
 
-    game.settings.register('fighty-qol', 'active', {
-        name: 'Enable Escalation System (Master)',
-        scope: 'world', config: true, type: Boolean, default: true
-    });
-
-    game.settings.register('fighty-qol', 'visibility', {
-        name: 'Show Escalation Dice Widget',
-        scope: 'world', config: true, type: Boolean, default: true
-    });
-
-    game.settings.register('fighty-qol', 'enableAutomation', {
-        name: 'Enable Escalation Automation',
-        scope: 'world', config: true, type: Boolean, default: true
-    });
-
-    game.settings.registerMenu('fighty-qol', 'escalationMenu', {
-        name: 'Escalation Settings',
-        label: 'Configure Escalation',
-        icon: 'fas fa-dice-d20',
-        type: EscalationSettings,
-        restricted: true
-    });
-
-    game.settings.register('fighty-qol', 'enableAverager', {
-        name: 'Enable Group Initiative Averager',
-        scope: 'world', config: true, type: Boolean, default: true
-    });
-
-    game.settings.register('fighty-qol', 'enableVFXor', {
-        name: 'Enable VFXor System',
-        scope: 'client', config: true, type: Boolean, default: true
-    });
-
-    game.settings.registerMenu('fighty-qol', 'vfxorMenu', {
-        name: 'VFXor Settings',
-        label: 'Configure VFXor',
-        icon: 'fas fa-wand-magic-sparkles',
-        type: VFXorSettings,
-        restricted: true
-    });
-
-    game.settings.register('fighty-qol', 'vfxEffects', { scope: 'world', config: false, type: Object, default: {} });
-    game.settings.register('fighty-qol', 'vfxDictionary', { scope: 'world', config: false, type: Object, default: {} });
-    game.settings.register('fighty-qol', 'autoSkipNoTarget', { scope: 'world', config: false, type: Boolean, default: false });
+    game.settings.register('fighty-qol', 'active', { name: 'Enable Escalation System (Master)', scope: 'world', config: true, type: Boolean, default: true });
+    game.settings.register('fighty-qol', 'visibility', { name: 'Show Escalation Dice Widget', scope: 'world', config: true, type: Boolean, default: true });
+    game.settings.register('fighty-qol', 'enableAutomation', { name: 'Enable Escalation Automation', scope: 'world', config: true, type: Boolean, default: true });
+    game.settings.register('fighty-qol', 'enableAverager', { name: 'Enable Group Initiative Averager', scope: 'world', config: true, type: Boolean, default: true });
+    game.settings.register('fighty-qol', 'enableVFXor', { name: 'Enable VFXor System', scope: 'client', config: true, type: Boolean, default: true });
 
     game.settings.register('fighty-qol', 'startRound', { scope: 'world', config: false, type: Number, default: 2 });
     game.settings.register('fighty-qol', 'interval', { scope: 'world', config: false, type: Number, default: 0 });
@@ -94,10 +55,31 @@ Hooks.once('init', () => {
     game.settings.register('fighty-qol', 'posX', { scope: 'client', config: false, type: String, default: "" });
     game.settings.register('fighty-qol', 'posY', { scope: 'client', config: false, type: String, default: "" });
     game.settings.register('fighty-qol', 'automatedActors', { scope: 'world', config: false, type: Array, default: [] });
+    game.settings.register('fighty-qol', 'chatMessageEnabled', { scope: 'world', config: false, type: Boolean, default: false });
+    game.settings.register('fighty-qol', 'chatMessageText', { scope: 'world', config: false, type: String, default: "Escalation dice increases to {bonus}!" });
+
     game.settings.register('fighty-qol', 'autoAdd', { scope: 'world', config: false, type: Boolean, default: true });
     game.settings.register('fighty-qol', 'useBonuses', { scope: 'world', config: false, type: Boolean, default: true });
     game.settings.register('fighty-qol', 'calcMethod', { scope: 'world', config: false, type: String, default: 'avg' });
     game.settings.register('fighty-qol', 'rollMode', { scope: 'world', config: false, type: String, default: 'normal' });
-    game.settings.register('fighty-qol', 'chatMessageEnabled', { scope: 'world', config: false, type: Boolean, default: false });
-    game.settings.register('fighty-qol', 'chatMessageText', { scope: 'world', config: false, type: String, default: "Escalation dice increases to {bonus}!" });
+
+    game.settings.register('fighty-qol', 'vfxEffects', { scope: 'world', config: false, type: Object, default: {} });
+    game.settings.register('fighty-qol', 'vfxDictionary', { scope: 'world', config: false, type: Object, default: {} });
+    game.settings.register('fighty-qol', 'autoSkipNoTarget', { scope: 'world', config: false, type: Boolean, default: false });
+
+    game.settings.registerMenu('fighty-qol', 'escalationMenu', {
+        name: 'Escalation Settings',
+        label: 'Configure Escalation',
+        icon: 'fas fa-dice-d20',
+        type: EscalationSettings,
+        restricted: true
+    });
+
+    game.settings.registerMenu('fighty-qol', 'vfxorMenu', {
+        name: 'VFXor Settings',
+        label: 'Configure VFXor',
+        icon: 'fas fa-wand-magic-sparkles',
+        type: typeof VFXorSettings !== "undefined" ? VFXorSettings : FormApplication,
+        restricted: true
+    });
 });
