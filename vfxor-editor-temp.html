@@ -1,4 +1,83 @@
-<div class="vfxor-editor-wrapper">
-    <h2>VFXor Editor UI</h2>
-    <p>Zde budeme stavět drag-and-drop lego kostky pro efekty.</p>
-</div>
+<form autocomplete="off" style="height: 100%; display: flex; flex-direction: column;">
+    <div class="vfxor-editor-wrapper" style="display: flex; flex-grow: 1; overflow: hidden; height: 100%;">
+        
+        <div class="vfxor-sidebar" style="width: 220px; border-right: 1px solid #555; padding-right: 10px; display: flex; flex-direction: column;">
+            <button type="button" id="vfxor-add-effect" style="margin-bottom: 10px; background: #2d5a2d;">
+                <i class="fas fa-plus"></i> New Effect
+            </button>
+            <ul style="list-style: none; padding: 0; margin: 0; overflow-y: auto; flex-grow: 1;">
+                {{#each effects as |effect id|}}
+                <li style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                    <button type="button" class="vfxor-select-effect" data-id="{{id}}" style="flex-grow: 1; text-align: left; padding-left: 10px; background: {{#if (eq ../currentEffectId id)}}#555{{else}}#222{{/if}}; border-right: none;">
+                        {{effect.name}}
+                    </button>
+                    <button type="button" class="vfxor-delete-effect" data-id="{{id}}" style="flex-grow: 0; width: 35px; background: #8b0000; border-left: none;">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </li>
+                {{/each}}
+            </ul>
+        </div>
+
+        <div class="vfxor-workspace" style="flex-grow: 1; padding-left: 15px; overflow-y: auto; display: flex; flex-direction: column;">
+            {{#if currentEffectId}}
+            <div class="form-group" style="margin-bottom: 15px;">
+                <label style="font-size: 1.2em; font-weight: bold; margin-bottom: 5px; display: block;">Effect Name</label>
+                <div class="form-fields">
+                    <input type="text" name="effects.{{currentEffectId}}.name" value="{{currentEffect.name}}" style="font-size: 1.1em; padding: 5px;">
+                </div>
+            </div>
+            
+            <hr style="border-color: #444; margin-bottom: 15px;">
+            <h3 style="margin-top: 0;">Sequence Steps</h3>
+            
+            <div id="vfxor-steps-container" style="flex-grow: 1;">
+                {{#each currentEffect.steps as |step index|}}
+                <div class="vfxor-step" style="background: #1a1a1a; border: 1px solid #444; padding: 10px; margin-bottom: 10px; border-radius: 5px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; border-bottom: 1px solid #333; padding-bottom: 5px;">
+                        <strong style="color: #aaa;">Step {{index}}</strong>
+                        <button type="button" class="vfxor-delete-step" data-index="{{index}}" style="width: 30px; height: 30px; padding: 0; background: #8b0000; line-height: 30px;">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    
+                    <div style="display: flex; gap: 10px;">
+                        <div class="form-group" style="flex: 1;">
+                            <label>Action Type</label>
+                            <select name="effects.{{../currentEffectId}}.steps.{{index}}.type" style="width: 100%;">
+                                <option value="anim" {{#if (eq step.type "anim")}}selected{{/if}}>Play Animation</option>
+                                <option value="sound" {{#if (eq step.type "sound")}}selected{{/if}}>Play Sound</option>
+                                <option value="wait" {{#if (eq step.type "wait")}}selected{{/if}}>Wait (Delay)</option>
+                                <option value="macro" {{#if (eq step.type "macro")}}selected{{/if}}>Execute Macro</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="flex: 2;">
+                            <label>Value / File Path</label>
+                            <div style="display: flex; width: 100%;">
+                                <input type="text" name="effects.{{../currentEffectId}}.steps.{{index}}.file" value="{{step.file}}" style="width: 100%;">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {{/each}}
+            </div>
+            
+            <button type="button" id="vfxor-add-step" style="margin-top: 10px; background: #444;">
+                <i class="fas fa-plus"></i> Add Sequence Step
+            </button>
+            
+            {{else}}
+            <div style="text-align: center; color: #777; margin-top: 100px; display: flex; flex-direction: column; align-items: center;">
+                <i class="fas fa-magic" style="font-size: 3em; margin-bottom: 15px; opacity: 0.5;"></i>
+                <p>Select an effect from the list or create a new one to start building.</p>
+            </div>
+            {{/if}}
+        </div>
+    </div>
+    
+    <div style="padding-top: 15px; border-top: 1px solid #555; margin-top: 15px;">
+        <button type="submit" style="width: 100%; font-size: 1.1em; padding: 8px; background: #004080;">
+            <i class="fas fa-save"></i> Save All Effects
+        </button>
+    </div>
+</form>
