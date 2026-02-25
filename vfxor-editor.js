@@ -2,6 +2,7 @@ class VFXorEditor extends FormApplication {
     static get defaultOptions() {
         return foundry.utils.mergeObject(super.defaultOptions, {
             id: 'vfxor-editor',
+            classes: ["vfxor-window"],
             title: 'VFXor Editor',
             template: 'modules/fighty-qol/vfxor-editor-temp.html',
             width: 800,

@@ -1,9 +1,30 @@
-.vfxor-settings-wrapper {
-    color: #e0e0e0;
+.vfxor-window .window-content {
+    background: #2b2b2b !important;
+    color: #e0e0e0 !important;
 }
 
-.vfxor-editor-wrapper {
+.vfxor-settings-wrapper, .vfxor-editor-wrapper {
     padding: 10px;
-    color: #e0e0e0;
     font-family: 'Signika', sans-serif;
+}
+
+.vfxor-window button {
+    background: #444;
+    color: white;
+    border: 1px solid #777;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.vfxor-window button:hover {
+    background: #555;
+    box-shadow: 0 0 5px rgba(255, 255, 255, 0.2);
+}
+
+.vfxor-window input[type="text"],
+.vfxor-window input[type="number"],
+.vfxor-window select {
+    background: #111;
+    color: #fff;
+    border: 1px solid #555;
 }
