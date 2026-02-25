@@ -73,6 +73,28 @@ class VFXorEditor extends FormApplication {
             this.render(true);
         });
 
+        html.find('.vfxor-move-up').click(ev => {
+            if (!this.currentEffectId) return;
+            this._updateLocalFromForm();
+            const index = Number(ev.currentTarget.dataset.index);
+            if (index > 0) {
+                const layers = this.localEffects[this.currentEffectId].layers;
+                [layers[index - 1], layers[index]] = [layers[index], layers[index - 1]];
+                this.render(true);
+            }
+        });
+
+        html.find('.vfxor-move-down').click(ev => {
+            if (!this.currentEffectId) return;
+            this._updateLocalFromForm();
+            const index = Number(ev.currentTarget.dataset.index);
+            const layers = this.localEffects[this.currentEffectId].layers;
+            if (index < layers.length - 1) {
+                [layers[index], layers[index + 1]] = [layers[index + 1], layers[index]];
+                this.render(true);
+            }
+        });
+
         html.find('.vfxor-file-picker').click(ev => {
             ev.preventDefault();
             const target = ev.currentTarget.dataset.target;
