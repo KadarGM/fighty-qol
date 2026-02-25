@@ -21,40 +21,59 @@
 
         <div class="vfxor-workspace" style="flex-grow: 1; padding-left: 15px; overflow-y: auto; display: flex; flex-direction: column;">
             {{#if currentEffectId}}
-            <div class="form-group" style="margin-bottom: 15px;">
-                <label style="font-size: 1.2em; font-weight: bold; margin-bottom: 5px; display: block;">Effect Name</label>
-                <div class="form-fields">
-                    <input type="text" name="effects.{{currentEffectId}}.name" value="{{currentEffect.name}}" style="font-size: 1.1em; padding: 5px;">
+            
+            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 15px;">
+                <div class="form-group" style="flex-grow: 1; margin-right: 15px;">
+                    <label style="font-size: 1.2em; font-weight: bold; margin-bottom: 5px; display: block;">Effect Name</label>
+                    <input type="text" name="effects.{{currentEffectId}}.name" value="{{currentEffect.name}}" style="font-size: 1.1em; padding: 5px; width: 100%;">
                 </div>
+                <button type="button" class="vfxor-preview-effect" style="background: #a67c00; width: 150px; height: 35px; color: #fff;">
+                    <i class="fas fa-play"></i> Play Preview
+                </button>
             </div>
             
             <hr style="border-color: #444; margin-bottom: 15px;">
-            <h3 style="margin-top: 0;">Sequence Steps</h3>
+            <h3 style="margin-top: 0; color: #aaa;">Visual Layers</h3>
             
-            <div id="vfxor-steps-container" style="flex-grow: 1;">
-                {{#each currentEffect.steps as |step index|}}
-                <div class="vfxor-step" style="background: #1a1a1a; border: 1px solid #444; padding: 10px; margin-bottom: 10px; border-radius: 5px;">
+            <div id="vfxor-layers-container" style="flex-grow: 1;">
+                {{#each currentEffect.layers as |layer index|}}
+                <div class="vfxor-layer" style="background: #1a1a1a; border: 1px solid #444; padding: 10px; margin-bottom: 10px; border-radius: 5px; position: relative;">
+                    
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; border-bottom: 1px solid #333; padding-bottom: 5px;">
-                        <strong style="color: #aaa;">Step {{index}}</strong>
-                        <button type="button" class="vfxor-delete-step" data-index="{{index}}" style="width: 30px; height: 30px; padding: 0; background: #8b0000; line-height: 30px;">
+                        <strong style="color: #4a90e2;"><i class="fas fa-layer-group"></i> Layer {{index}}</strong>
+                        <button type="button" class="vfxor-delete-layer" data-index="{{index}}" style="width: 30px; height: 30px; padding: 0; background: #8b0000; line-height: 30px;">
                             <i class="fas fa-times"></i>
                         </button>
                     </div>
                     
-                    <div style="display: flex; gap: 10px;">
-                        <div class="form-group" style="flex: 1;">
-                            <label>Action Type</label>
-                            <select name="effects.{{../currentEffectId}}.steps.{{index}}.type" style="width: 100%;">
-                                <option value="anim" {{#if (eq step.type "anim")}}selected{{/if}}>Play Animation</option>
-                                <option value="sound" {{#if (eq step.type "sound")}}selected{{/if}}>Play Sound</option>
-                                <option value="wait" {{#if (eq step.type "wait")}}selected{{/if}}>Wait (Delay)</option>
-                                <option value="macro" {{#if (eq step.type "macro")}}selected{{/if}}>Execute Macro</option>
-                            </select>
+                    <div class="form-group" style="margin-bottom: 10px;">
+                        <label>Animation File (.webm / .webp)</label>
+                        <div style="display: flex; gap: 5px;">
+                            <input type="text" class="vfx-file-input" name="effects.{{../currentEffectId}}.layers.{{index}}.file" value="{{layer.file}}" style="flex-grow: 1;">
+                            <button type="button" class="vfxor-file-picker" data-target="effects.{{../currentEffectId}}.layers.{{index}}.file" style="width: 40px; background: #444;">
+                                <i class="fas fa-folder-open"></i>
+                            </button>
                         </div>
-                        <div class="form-group" style="flex: 2;">
-                            <label>Value / File Path</label>
-                            <div style="display: flex; width: 100%;">
-                                <input type="text" name="effects.{{../currentEffectId}}.steps.{{index}}.file" value="{{step.file}}" style="width: 100%;">
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div class="form-group">
+                            <label>Delay (ms) <span style="font-weight: normal; color: #888;">(0 = instant)</span></label>
+                            <input type="number" name="effects.{{../currentEffectId}}.layers.{{index}}.delay" value="{{layer.delay}}" step="100">
+                        </div>
+                        <div class="form-group">
+                            <label>Scale (Size)</label>
+                            <input type="number" name="effects.{{../currentEffectId}}.layers.{{index}}.scale" value="{{layer.scale}}" step="0.1" min="0.1">
+                        </div>
+                        <div class="form-group">
+                            <label>Playback Speed</label>
+                            <input type="number" name="effects.{{../currentEffectId}}.layers.{{index}}.speed" value="{{layer.speed}}" step="0.1" min="0.1">
+                        </div>
+                        <div class="form-group">
+                            <label>Color Tint</label>
+                            <div style="display: flex; gap: 5px;">
+                                <input type="color" name="effects.{{../currentEffectId}}.layers.{{index}}.tint" value="{{layer.tint}}" style="width: 40px; padding: 0; cursor: pointer;">
+                                <input type="text" value="{{layer.tint}}" disabled style="flex-grow: 1; background: #222;">
                             </div>
                         </div>
                     </div>
@@ -62,14 +81,14 @@
                 {{/each}}
             </div>
             
-            <button type="button" id="vfxor-add-step" style="margin-top: 10px; background: #444;">
-                <i class="fas fa-plus"></i> Add Sequence Step
+            <button type="button" id="vfxor-add-layer" style="margin-top: 10px; background: #333; border: 1px dashed #777;">
+                <i class="fas fa-plus"></i> Add New Layer
             </button>
             
             {{else}}
             <div style="text-align: center; color: #777; margin-top: 100px; display: flex; flex-direction: column; align-items: center;">
-                <i class="fas fa-magic" style="font-size: 3em; margin-bottom: 15px; opacity: 0.5;"></i>
-                <p>Select an effect from the list or create a new one to start building.</p>
+                <i class="fas fa-photo-video" style="font-size: 3em; margin-bottom: 15px; opacity: 0.5;"></i>
+                <p>Select an effect from the list or create a new one to start compositing.</p>
             </div>
             {{/if}}
         </div>
@@ -77,7 +96,7 @@
     
     <div style="padding-top: 15px; border-top: 1px solid #555; margin-top: 15px;">
         <button type="submit" style="width: 100%; font-size: 1.1em; padding: 8px; background: #004080;">
-            <i class="fas fa-save"></i> Save All Effects
+            <i class="fas fa-save"></i> Save Effects
         </button>
     </div>
 </form>
